@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlantPro AI – Single File</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React + ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+</head>
+<body class="bg-slate-50">
+  <div id="root"></div>
+
+  <script>
+    const { useState, useRef } = React;
+
+    function App() {
+      const [image, setImage] = useState(null);
+      const [result, setResult] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState(null);
+      const fileRef = useRef();
+
+      function handleUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => setImage(ev.target.result);
+        reader.readAsDataURL(file);
+      }
+
+      async function scanPlant() {
+        if (!image) return;
+        setLoading(true);
+        setError(null);
+
+        try {
+          // ⚠️ Browser-safe demo result (no secret key in frontend)
+          // Replace with backend API if you want real Gemini calls
+          await new Promise(r => setTimeout(r, 1500));
+
+          setResult({
+            plantName: 'Rose',
+            scientificName: 'Rosa',
+            confidence: '95%',
+            health: 'Healthy',
+            care: {
+              water: 'Moderate watering, avoid waterlogging',
+              light: 'Full sun (6–8 hours)',
+              temp: '18–26°C'
+            },
+            fact: 'Roses have existed for over 35 million years.'
+          });
+        } catch (e) {
+          setError('Scan failed');
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      return (
+        React.createElement('div', { className: 'max-w-3xl mx-auto p-6 space-y-6' },
+          React.createElement('h1', { className: 'text-3xl font-bold text-emerald-700' }, 'PlantPro AI (Single File)'),
+
+          !image && React.createElement('button', {
+            onClick: () => fileRef.current.click(),
+            className: 'w-full p-10 border-2 border-dashed rounded-xl bg-white hover:bg-emerald-50'
+          }, 'Upload Plant Image'),
+
+          React.createElement('input', {
+            type: 'file',
+            accept: 'image/*',
+            ref: fileRef,
+            className: 'hidden',
+            onChange: handleUpload
+          }),
+
+          image && React.createElement('img', { src: image, className: 'rounded-xl shadow' }),
+
+          image && !result && !loading && React.createElement('button', {
+            onClick: scanPlant,
+            className: 'w-full bg-emerald-600 text-white py-4 rounded-xl font-bold'
+          }, 'Deep Scan'),
+
+          loading && React.createElement('p', { className: 'text-center italic text-slate-500' }, 'Scanning plant…'),
+
+          error && React.createElement('p', { className: 'text-red-600' }, error),
+
+          result && React.createElement('div', { className: 'bg-white p-6 rounded-xl shadow space-y-2' },
+            React.createElement('h2', { className: 'text-2xl font-bold' }, result.plantName),
+            React.createElement('p', { className: 'italic text-emerald-600' }, result.scientificName),
+            React.createElement('p', null, 'Confidence: ', result.confidence),
+            React.createElement('p', null, 'Health: ', result.health),
+            React.createElement('hr'),
+            React.createElement('p', null, 'Water: ', result.care.water),
+            React.createElement('p', null, 'Light: ', result.care.light),
+            React.createElement('p', null, 'Temperature: ', result.care.temp),
+            React.createElement('p', { className: 'mt-2 text-sm text-slate-600' }, result.fact),
+            React.createElement('button', {
+              onClick: () => { setImage(null); setResult(null); },
+              className: 'mt-4 bg-slate-200 px-4 py-2 rounded'
+            }, 'New Scan')
+          )
+        )
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
